@@ -1,7 +1,6 @@
-import React from "react";
+import React, { FC } from "react";
+import useRenderRoutes from "./routes";
 
-function App() {
-  return <h1>App</h1>;
-}
+const App: FC = () => useRenderRoutes();
 
 export default App;

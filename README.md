@@ -94,4 +94,161 @@ module.exports = {
 - 重启项目
 
 ## 四、使用antd组件库
+antd 官网地址：https://ant-design.antgroup.com/index-cn
+
+1. 安装
+```shell
+yarn add antd
+```
+
+2. 自定义主题
+- 安装 craco-antd 并修改 craco.config.js 文件
+```shell
+yarn add craco-antd
+```
+```js
+const CracoAntDesignPlugin = require('craco-antd');
+
+module.exports = {
+  plugins: [
+    {
+      plugin: CracoAntDesignPlugin,
+      options: {
+        customizeTheme: {
+          '@primary-color': '#1DA57A',
+        },
+      },
+    },
+  ],
+};
+```
+- 在 App.tsx中去除App.css
+
+## 五、基本路由的配置
+- 安装路由
+```shell
+yarn add react-router-dom
+```
+- 在 src/index.tsx 文件中配置路由模式
+```tsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+// 路由使用history模式
+import { BrowserRouter } from "react-router-dom";
+// 在ts中，@别名会报错，修改tsconfig.json
+import App from "@/App";
+
+const root = ReactDOM.createRoot(
+  document.getElementById("root") as HTMLElement
+);
+root.render(
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
+);
+```
+- 先增加两个路由页面
+  - src -> pages -> Login -> index.tsx
+```tsx
+import React from "react";
+export default function Login() {
+  return <div>Login</div>;
+}
+```
+  - src -> pages -> Index -> index.tsx
+```tsx
+import React from "react";
+export default function Index() {
+  return <div>Index</div>;
+}
+```
+  - src -> pages -> NotFound -> index.tsx
+```tsx
+import React from "react";
+import { Button, Result } from "antd";
+import { useNavigate } from "react-router-dom";
+
+const NotFound: React.FC = () => {
+  const navigate = useNavigate();
+  return (
+    <Result
+      status="404"
+      title="404"
+      subTitle="抱歉, 该页面不存在！"
+      extra={
+        <Button
+          type="primary"
+          onClick={() => {
+            navigate("/");
+          }}
+        >
+          返回首页
+        </Button>
+      }
+    />
+  );
+};
+
+export default NotFound;
+```
+
+- 添加路由：src -> App.tsx
+```tsx
+import React, { FC } from "react";
+import { Routes, Route } from "react-router-dom";
+import Index from "@/pages/Index";
+import Login from "@/pages/Login";
+import NotFound from "@/pages/NotFound";
+
+const App: FC = () => (
+  <Routes>
+    <Route path="/" element={<Index />}></Route>
+    <Route path="/login" element={<Login />}></Route>
+    <Route path="*" element={<NotFound />}></Route>
+  </Routes>
+);
+
+export default App;
+```
+## 六、路由增加配置文件
+- 在 src -> routes -> index.tsx
+```tsx
+import { useRoutes } from "react-router-dom";
+import Index from "@/pages/Index";
+import Login from "@/pages/Login";
+import NotFound from "@/pages/NotFound";
+
+const useRenderRoutes = () => {
+  return useRoutes([
+    {
+      path: "/",
+      element: <Index />,
+    },
+    {
+      path: "/login",
+      element: <Login />,
+    },
+    {
+      path: "*",
+      element: <NotFound />,
+    },
+  ]);
+};
+export default useRenderRoutes;
+```
+- 修改src -> App.tsx
+```tsx
+import React, { FC } from "react";
+import useRenderRoutes from "./routes";
+
+const App: FC = () => useRenderRoutes();
+
+export default App;
+```
+
+## 七、实现路由的懒加载
+
+
+
+
 
