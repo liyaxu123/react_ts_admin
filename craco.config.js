@@ -22,5 +22,15 @@ module.exports = {
   },
   devServer: {
     port: 8080,
+    // 配置代理，解决跨域
+    // proxy: {
+    //   "/auth": {
+    //     target: "http://xxx.com",
+    //     changeOrigin: true,
+    //     // pathRewrite: {
+    //     //   "^/api": "",
+    //     // },
+    //   },
+    // },
   },
 };

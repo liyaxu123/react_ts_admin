@@ -463,4 +463,163 @@ export default useRenderRoutes;
 ```
 ## 十一、完成登录界面
 
+## 十二、配置代理服务
+1. 安装axios
+```shell
+npm install axios
+```
+
+2. 在craco.config.js中配置代理
+```js
+devServer: {
+    port: 8080,
+    // 配置代理，解决跨域
+    proxy: {
+      "/auth": {
+        target: "http://xxx.com",
+        changeOrigin: true,
+        // pathRewrite: {
+        //   "^/api": "",
+        // },
+      },
+    },
+  },
+```
+## 十三、配置mock
+1. 安装mock.js
+```shell
+yarn add mockjs
+```
+2. 安装mockjs类型声明文件
+```shell
+yarn add @types/mockjs
+```
+3. 配置mock
+- 在 src目录下新建mock文件夹，mock文件夹下面新建index.ts
+```ts
+import Mock from "mockjs";
+import { login } from "./response/user";
+
+Mock.mock(/\/login/, "post", login);
+
+// 配置拦截 Ajax 请求时的行为。支持的配置项有：timeout。
+// 例如 '200-600'，表示响应时间介于 200 和 600 毫秒之间。
+Mock.setup({
+  timeout: "200-600",
+});
+
+export default Mock;
+```
+- 在 src/mock/response/user.ts
+```ts
+// 处理登录
+export const login = (options: any) => {
+  const body = JSON.parse(options.body);
+  if (body.username === "admin" && body.password === "123456") {
+    return {
+      code: 200,
+      data: {
+        token: "ksdjasdgjasgdjah.12juhh283u234yu4yu2.kjashd8932479238",
+      },
+      mes: "登录成功",
+    };
+  } else {
+    return {
+      code: -1,
+      mes: "账号密码不正确",
+    };
+  }
+};
+```
+- 在src/index.tsx
+```tsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+// 路由使用history模式
+import { BrowserRouter } from "react-router-dom";
+// 在ts中，@别名会报错，修改tsconfig.json
+import App from "@/App";
+import "./App.css";
+
+// 使用mockjs
+import "./mock";
+
+const root = ReactDOM.createRoot(
+  document.getElementById("root") as HTMLElement
+);
+root.render(
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
+);
+```
+
+## 十四、封装API
+- 封装axios：src/utils/request.ts
+```ts
+import axios from "axios";
+import { message } from "antd";
+
+const request = axios.create({
+  baseURL: process.env.REACT_APP_URL,
+  // 请求超时时间
+  timeout: 1000 * 60 * 5,
+});
+
+// 添加请求拦截器
+request.interceptors.request.use(
+  function (config: any) {
+    // console.log("请求拦截器", config);
+    // 在发送请求之前给 header 设置 token
+    if (!config.url.includes("/userlogin")) {
+      config.headers[process.env.REACT_APP_AJAX_HEADER_AUTH_NAME!] =
+        localStorage.getItem(process.env.REACT_APP_TOKEN_NAME!);
+    }
+    return config;
+  },
+  function (error) {
+    // 对请求错误做些什么
+    return Promise.reject(error);
+  }
+);
+
+// 添加响应拦截器
+request.interceptors.response.use(
+  function (response) {
+    // console.log("响应拦截器", response);
+    if (response.data.code !== 200) {
+      message.error(response.data.msg);
+      return Promise.reject(response.data);
+    }
+    // 对响应数据做点什么
+    return response.data;
+  },
+  function (error) {
+    // 对响应错误做点什么
+    return Promise.reject(error);
+  }
+);
+
+export default request;
+```
+- 统一管理API：src/api/user.ts
+```ts
+import request from "@/utils/request";
+
+export interface IloginForm {
+  username: string;
+  password: string;
+}
+
+/**
+ * @description: 用户登录
+ */
+export const postLogin = (data: IloginForm) => {
+  return request({
+    method: "post",
+    url: "/login",
+    data,
+  });
+};
+```
 

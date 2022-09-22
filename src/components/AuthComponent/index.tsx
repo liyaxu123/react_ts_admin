@@ -6,7 +6,7 @@ type TProps = {
   children: ReactElement;
 };
 const AuthComponent: FC<TProps> = (props) => {
-  if (localStorage.getItem("token")) {
+  if (localStorage.getItem(process.env.REACT_APP_TOKEN_NAME as string)) {
     return props.children;
   }
   // 如果未登录，跳转至登录界面
