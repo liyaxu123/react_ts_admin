@@ -4,6 +4,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 // 在ts中，@别名会报错，修改tsconfig.json
 import App from "@/App";
+import "./App.css";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement

@@ -1,23 +1,31 @@
 import { lazy, Suspense } from "react";
 import { useRoutes } from "react-router-dom";
+import Loading from "@/components/Loading";
+import AuthComponent from "@/components/AuthComponent";
+
 // 实现路由懒加载
-const Index = lazy(() => import("@/pages/Index"));
-const Login = lazy(() => import("@/pages/Login"));
-const NotFound = lazy(() => import("@/pages/NotFound"));
+const lazyLoad = (path: string) => {
+  const Comp = lazy(() => import(`@/pages/${path}`));
+  return (
+    <Suspense fallback={<Loading />}>
+      <Comp />
+    </Suspense>
+  );
+};
 
 const useRenderRoutes = () => {
   return useRoutes([
     {
       path: "/",
-      element: <Index />,
+      element: <AuthComponent>{lazyLoad("Index")}</AuthComponent>,
     },
     {
       path: "/login",
-      element: <Login />,
+      element: lazyLoad("Login"),
     },
     {
       path: "*",
-      element: <NotFound />,
+      element: lazyLoad("NotFound"),
     },
   ]);
 };

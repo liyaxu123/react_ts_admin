@@ -247,8 +247,220 @@ export default App;
 ```
 
 ## 七、实现路由的懒加载
+- src -> routes -> index.tsx
+```tsx
+import { lazy, Suspense } from "react";
+import { useRoutes } from "react-router-dom";
+import Loading from "@/components/Loading";
+// 实现路由懒加载
+const Index = lazy(() => import("@/pages/Index"));
+const Login = lazy(() => import("@/pages/Login"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
 
+const useRenderRoutes = () => {
+  return useRoutes([
+    {
+      path: "/",
+      element: (
+        <Suspense fallback={<Loading />}>
+          <Index />
+        </Suspense>
+      ),
+    },
+    {
+      path: "/login",
+      element: (
+        <Suspense fallback={<Loading />}>
+          <Login />
+        </Suspense>
+      ),
+    },
+    {
+      path: "*",
+      element: (
+        <Suspense fallback={<Loading />}>
+          <NotFound />
+        </Suspense>
+      ),
+    },
+  ]);
+};
 
+export default useRenderRoutes;
+```
+- src -> components -> Loading -> index.tsx
+```tsx
+import { Spin } from "antd";
+import React from "react";
+import "./index.less";
 
+const Loading: React.FC = () => (
+  <div className="example">
+    <Spin />
+  </div>
+);
+
+export default Loading;
+```
+- src -> components -> Loading -> index.less
+```css
+.example {
+  height: 100vh;
+  padding: 30px 50px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+```
+## 八、路由懒加载优化
+- 修改src -> routes -> index.tsx
+```tsx
+import { lazy, Suspense } from "react";
+import { useRoutes } from "react-router-dom";
+import Loading from "@/components/Loading";
+
+// 实现路由懒加载
+const lazyLoad = (path: string) => {
+  const Comp = lazy(() => import(`@/pages/${path}`));
+  return (
+    <Suspense fallback={<Loading />}>
+      <Comp />
+    </Suspense>
+  );
+};
+
+const useRenderRoutes = () => {
+  return useRoutes([
+    {
+      path: "/",
+      element: lazyLoad("Index"),
+    },
+    {
+      path: "/login",
+      element: lazyLoad("Login"),
+    },
+    {
+      path: "*",
+      element: lazyLoad("NotFound"),
+    },
+  ]);
+};
+
+export default useRenderRoutes;
+```
+## 九、支持module.less
+- 在src -> react-app-env.d.ts 中添加.module.less文件声明
+```ts
+/// <reference types="react-scripts" />
+// 添加.module.less的文件声明
+declare module "*.module.less" {
+  const classes: { readonly [key: string]: string };
+  export default classes;
+}
+```
+- 在src/pages/Login/index.module.less文件中编写less代码
+```less
+.login {
+  .title {
+    color: red;
+  }
+
+  :global {
+    // 可以直接通过className="my"来使用
+    .my {
+      background-color: skyblue;
+    }
+  }
+}
+```
+- 在src/pages/Loagin/index.tsx中使用.module.less
+```tsx
+import React from "react";
+import styles from "./index.module.less";
+
+export default function Login() {
+  return (
+    <div className={styles.login}>
+      <h1 className={styles.title}>登录页面</h1>
+      <p className="my">哈哈</p>
+    </div>
+  );
+}
+```
+## 十、添加路由拦截器组件
+1. 可以针对于某一个路由进行设置
+```tsx
+// src/pages/Index/index.tsx
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
+export default function Index() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // 如果用户未登录，则跳转到登录路由
+    if (!localStorage.getItem("token")) {
+      navigate("/login");
+    }
+  }, []);
+  return <div>Index</div>;
+}
+```
+2. 可以增加路由拦截器组件，为需要进行验证的组件增加上该拦截即可
+```tsx
+import React, { ReactElement, FC } from "react";
+import { Navigate } from "react-router-dom";
+
+// 职责：验证是否登录，如果登录那么渲染内容，否则跳转至登录页面
+type TProps = {
+  children: ReactElement;
+};
+const AuthComponent: FC<TProps> = (props) => {
+  if (localStorage.getItem("token")) {
+    return props.children;
+  }
+  // 如果未登录，跳转至登录界面
+  return <Navigate to="/login"></Navigate>;
+};
+
+export default AuthComponent;
+```
+3. 在src/routes/index.tsx中使用路由拦截器组件
+```tsx
+import { lazy, Suspense } from "react";
+import { useRoutes } from "react-router-dom";
+import Loading from "@/components/Loading";
+import AuthComponent from "@/components/AuthComponent";
+
+// 实现路由懒加载
+const lazyLoad = (path: string) => {
+  const Comp = lazy(() => import(`@/pages/${path}`));
+  return (
+    <Suspense fallback={<Loading />}>
+      <Comp />
+    </Suspense>
+  );
+};
+
+const useRenderRoutes = () => {
+  return useRoutes([
+    {
+      path: "/",
+      element: <AuthComponent>{lazyLoad("Index")}</AuthComponent>,
+    },
+    {
+      path: "/login",
+      element: lazyLoad("Login"),
+    },
+    {
+      path: "*",
+      element: lazyLoad("NotFound"),
+    },
+  ]);
+};
+
+export default useRenderRoutes;
+```
+## 十一、完成登录界面
 
 
