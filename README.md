@@ -701,3 +701,346 @@ export default function Index() {
   return <div>Index</div>;
 }
 ```
+
+## 十六、组件中获取redux状态
+- src/pages/index/index.tsx
+```tsx
+import React from "react";
+import { useSelector } from "react-redux";
+import { selectorAuth } from "@/store/modules/auth";
+
+export default function Index() {
+  const auth = useSelector(selectorAuth);
+  console.log(auth);
+
+  return <div>Index</div>;
+}
+```
+- 修改 src/store/modules/auth.ts
+```ts
+import { createSlice } from "@reduxjs/toolkit";
+
+const authSlice = createSlice({
+  name: "auth",
+  initialState: {
+    token: "",
+  },
+  reducers: {
+    // payload是接收到的token
+    upToken(state, { payload }) {
+      state.token = payload;
+      localStorage.setItem(process.env.REACT_APP_TOKEN_NAME as string, payload);
+    },
+  },
+});
+
+export const selectorAuth = (state: any) => state.auth;
+export default authSlice.reducer;
+```
+## 十七、dispatch的使用
+- 方式一：
+1. 在 src/store/modules/auth.ts中定义登录功能的异步action
+```ts
+import { createSlice } from "@reduxjs/toolkit";
+import { postLogin, IloginForm } from "@/api/user";
+import { message } from "antd";
+
+const authSlice = createSlice({
+  name: "auth",
+  initialState: {
+    token: "",
+  },
+  reducers: {
+    // payload是接收到的token
+    upToken(state, { payload }) {
+      state.token = payload;
+      localStorage.setItem(process.env.REACT_APP_TOKEN_NAME as string, payload);
+    },
+  },
+});
+
+const { upToken } = authSlice.actions;
+
+export const selectorAuth = (state: any) => state.auth;
+
+// 异步action(函数)，通过dispatch可以调用同步/异步action
+export const postLoginAsync = (data: IloginForm) => {
+  return async (dispatch: any) => {
+    // 发送请求
+    const res: any = await postLogin(data);
+    // 更新状态
+    dispatch(upToken(res.data.token));
+    message.success(res.msg);
+    return res.msg;
+  };
+};
+
+export default authSlice.reducer;
+```
+2. 修改src/pages/Login/index.tsx中的登录逻辑，派发异步action
+```tsx
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Form, Input, Checkbox, Button } from "antd";
+import { LockOutlined, UserOutlined } from "@ant-design/icons";
+import { postLoginAsync } from "@/store/modules/auth";
+import { IloginForm } from "@/api/user";
+import styles from "./index.module.less";
+import loginBanner from "@/assets/images/login_banner.jpg";
+import { useAppDispatch } from "@/store";
+
+const Login: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const [submitBtnLoading, setSubmitBtnLoading] = useState(false);
+
+  // 登录
+  const onFinish = async (values: IloginForm) => {
+    setSubmitBtnLoading(true);
+    try {
+      // 派发异步action
+      await dispatch(postLoginAsync(values));
+
+      // 跳转到首页
+      navigate("/", {
+        replace: true,
+      });
+    } finally {
+      setSubmitBtnLoading(false);
+    }
+  };
+
+  return (
+    <div className={styles.login}>
+      <div className={styles.formWrapper}>
+        {/* 登录表单左侧图片 */}
+        <div className={styles.left}>
+          <img src={loginBanner} alt="loginBanner" />
+        </div>
+        {/* 登录表单右侧表单 */}
+        <div className={styles.right}>
+          <h3 className={styles.title}>大黑牛后台管理系统</h3>
+          <div className={styles.formContainer}>
+            <Form
+              name="normal_login"
+              className={styles.loginForm}
+              initialValues={{ remember: true }}
+              onFinish={onFinish}
+            >
+              <Form.Item
+                name="username"
+                rules={[{ required: true, message: "请输入您的用户名！" }]}
+              >
+                <Input prefix={<UserOutlined />} placeholder="请输入用户名" />
+              </Form.Item>
+              <Form.Item
+                name="password"
+                rules={[{ required: true, message: "请输入您的密码！" }]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined />}
+                  placeholder="请输入密码"
+                />
+              </Form.Item>
+              <Form.Item>
+                <Form.Item name="remember" valuePropName="checked" noStyle>
+                  <Checkbox>记住我</Checkbox>
+                </Form.Item>
+
+                <a className={styles.loginFormForgot} href="##">
+                  忘记密码
+                </a>
+              </Form.Item>
+
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={submitBtnLoading}
+                  className={styles.loginFormButton}
+                >
+                  登录
+                </Button>
+              </Form.Item>
+            </Form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
+```
+3. 由于使用dispatch，需要给useDispatch Hook 指定泛型，不然会报错，所以对useDispatch在src/store/index.ts中进行封装
+```ts
+import { configureStore } from "@reduxjs/toolkit";
+import { useDispatch } from "react-redux";
+import auth from "./modules/auth";
+
+const store = configureStore({
+  reducer: {
+    auth,
+  },
+});
+
+// 使用dispatch，需要使用泛型，所以对其进行封装
+type Tdispatch = typeof store.dispatch;
+export const useAppDispatch = () => useDispatch<Tdispatch>();
+
+export default store;
+```
+
+- 方式二：asyncThunk
+1. 在src/store/modules/auth.ts中使用createAsyncThunk方法创建一个asyncThunk
+```ts
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { postLogin, IloginForm } from "@/api/user";
+import { message } from "antd";
+
+const authSlice = createSlice({
+  name: "auth",
+  initialState: {
+    token: "",
+  },
+  reducers: {
+    // payload是接收到的token
+    upToken(state, { payload }) {
+      state.token = payload;
+      localStorage.setItem(process.env.REACT_APP_TOKEN_NAME as string, payload);
+    },
+  },
+  // 额外的reducers，帮助我们处理异步
+  extraReducers: (builder) => {
+    builder
+      .addCase(postLoginAsync2.fulfilled, (state, { payload }) => {
+        console.log("fulfilled：", payload);
+        // 更新状态
+        state.token = localStorage[process.env.REACT_APP_TOKEN_NAME as string] =
+          payload.data.token;
+        message.success(payload.msg);
+      })
+      .addCase(postLoginAsync2.rejected, (state, action) => {
+        console.log("rejected：", action);
+      })
+      .addCase(postLoginAsync2.pending, (state, action) => {
+        console.log("pending：", action);
+      });
+  },
+});
+
+const { upToken } = authSlice.actions;
+
+export const selectorAuth = (state: any) => state.auth;
+
+// createAsyncThunk来自于@reduxjs/toolkit
+// 该函数接收的参数：
+//  1.自定义标识（字符串）
+//  2.回调函数(处理异步逻辑)
+export const postLoginAsync2 = createAsyncThunk(
+  "postLoginAsync2",
+  async (data: IloginForm) => {
+    // 发送请求
+    const res: any = await postLogin(data);
+    return res;
+  }
+);
+
+export default authSlice.reducer;
+```
+2. 在src/pages/Login/index.tsx中使用dispatch派发postLoginAsync2
+```tsx
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Form, Input, Checkbox, Button } from "antd";
+import { LockOutlined, UserOutlined } from "@ant-design/icons";
+import { postLoginAsync2 } from "@/store/modules/auth";
+import { IloginForm } from "@/api/user";
+import styles from "./index.module.less";
+import loginBanner from "@/assets/images/login_banner.jpg";
+import { useAppDispatch } from "@/store";
+
+const Login: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const [submitBtnLoading, setSubmitBtnLoading] = useState(false);
+
+  // 登录
+  const onFinish = async (values: IloginForm) => {
+    setSubmitBtnLoading(true);
+    try {
+      // 派发异步action
+      const res = await dispatch(postLoginAsync2(values));
+      if (res.type === "postLoginAsync2/fulfilled") {
+        // 跳转到首页
+        navigate("/", {
+          replace: true,
+        });
+      }
+    } finally {
+      setSubmitBtnLoading(false);
+    }
+  };
+
+  return (
+    <div className={styles.login}>
+      <div className={styles.formWrapper}>
+        {/* 登录表单左侧图片 */}
+        <div className={styles.left}>
+          <img src={loginBanner} alt="loginBanner" />
+        </div>
+        {/* 登录表单右侧表单 */}
+        <div className={styles.right}>
+          <h3 className={styles.title}>大黑牛后台管理系统</h3>
+          <div className={styles.formContainer}>
+            <Form
+              name="normal_login"
+              className={styles.loginForm}
+              initialValues={{ remember: true }}
+              onFinish={onFinish}
+            >
+              <Form.Item
+                name="username"
+                rules={[{ required: true, message: "请输入您的用户名！" }]}
+              >
+                <Input prefix={<UserOutlined />} placeholder="请输入用户名" />
+              </Form.Item>
+              <Form.Item
+                name="password"
+                rules={[{ required: true, message: "请输入您的密码！" }]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined />}
+                  placeholder="请输入密码"
+                />
+              </Form.Item>
+              <Form.Item>
+                <Form.Item name="remember" valuePropName="checked" noStyle>
+                  <Checkbox>记住我</Checkbox>
+                </Form.Item>
+
+                <a className={styles.loginFormForgot} href="##">
+                  忘记密码
+                </a>
+              </Form.Item>
+
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={submitBtnLoading}
+                  className={styles.loginFormButton}
+                >
+                  登录
+                </Button>
+              </Form.Item>
+            </Form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
+```

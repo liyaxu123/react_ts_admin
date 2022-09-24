@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Form, Input, Checkbox, Button, message } from "antd";
+import { Form, Input, Checkbox, Button } from "antd";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
+import { postLoginAsync2 } from "@/store/modules/auth";
+import { IloginForm } from "@/api/user";
 import styles from "./index.module.less";
 import loginBanner from "@/assets/images/login_banner.jpg";
-import { postLogin, IloginForm } from "@/api/user";
+import { useAppDispatch } from "@/store";
 
 const Login: React.FC = () => {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [submitBtnLoading, setSubmitBtnLoading] = useState(false);
 
@@ -14,18 +17,14 @@ const Login: React.FC = () => {
   const onFinish = async (values: IloginForm) => {
     setSubmitBtnLoading(true);
     try {
-      const res = await postLogin(values);
-      console.log(res);
-      // 保存token
-      localStorage.setItem(
-        process.env.REACT_APP_TOKEN_NAME as string,
-        res.data.token
-      );
-      message.success("登录成功");
-      // 跳转到首页
-      navigate("/", {
-        replace: true,
-      });
+      // 派发异步action
+      const res = await dispatch(postLoginAsync2(values));
+      if (res.type === "postLoginAsync2/fulfilled") {
+        // 跳转到首页
+        navigate("/", {
+          replace: true,
+        });
+      }
     } finally {
       setSubmitBtnLoading(false);
     }
