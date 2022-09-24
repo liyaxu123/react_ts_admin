@@ -622,4 +622,82 @@ export const postLogin = (data: IloginForm) => {
   });
 };
 ```
+## 十五、redux toolkit的基本使用
+1. 安装
+```shell
+npm install @reduxjs/toolkit react-redux
+```
+2. 创建仓库：src/store/index.ts
+```ts
+import { configureStore } from "@reduxjs/toolkit";
+import auth from "./modules/auth";
 
+const store = configureStore({
+  reducer: {
+    auth,
+  },
+});
+
+export default store;
+```
+
+3. 创建仓库的模块(区域，片slice)
+src/store/modules/auth.ts
+```ts
+import { createSlice } from "@reduxjs/toolkit";
+
+const authSlice = createSlice({
+  name: "auth",
+  initialState: {
+    token: "",
+  },
+  reducers: {
+    // payload是接收到的token
+    upToken(state, { payload }) {
+      state.token = payload;
+      localStorage.setItem(process.env.REACT_APP_TOKEN_NAME as string, payload);
+    },
+  },
+});
+
+export default authSlice.reducer;
+```
+4. 使用react-redux
+src/index.tsx
+```tsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+// 路由使用history模式
+import { BrowserRouter } from "react-router-dom";
+import { Provider } from "react-redux";
+import store from "./store";
+// 在ts中，@别名会报错，修改tsconfig.json
+import App from "@/App";
+import "./App.css";
+
+// 使用mockjs
+import "./mock";
+
+const root = ReactDOM.createRoot(
+  document.getElementById("root") as HTMLElement
+);
+root.render(
+  <Provider store={store}>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </Provider>
+);
+```
+5. 在页面中使用Redux：src/pages/index/index.tsx
+```tsx
+import React from "react";
+import { useSelector } from "react-redux";
+
+export default function Index() {
+  const auth = useSelector((state: any) => state.auth);
+  console.log(auth);
+
+  return <div>Index</div>;
+}
+```
