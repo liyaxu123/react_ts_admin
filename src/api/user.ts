@@ -15,3 +15,13 @@ export const postLogin = (data: IloginForm) => {
     data,
   });
 };
+
+/**
+ * @description: 获取用户菜单列表
+ */
+export const getMenuTree = () => {
+  return request({
+    method: "get",
+    url: "/menutree",
+  });
+};

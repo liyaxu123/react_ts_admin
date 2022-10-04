@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Input, Checkbox, Button } from "antd";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
-import { postLoginAsync2 } from "@/store/modules/auth";
+import { postLoginAsync2, getMenuTreeAsync } from "@/store/modules/auth";
 import { IloginForm } from "@/api/user";
 import styles from "./index.module.less";
 import loginBanner from "@/assets/images/login_banner.jpg";
@@ -20,8 +20,11 @@ const Login: React.FC = () => {
       // 派发异步action
       const res = await dispatch(postLoginAsync2(values));
       if (res.type === "postLoginAsync2/fulfilled") {
+        // 获取菜单列表
+        await dispatch(getMenuTreeAsync());
+
         // 跳转到首页
-        navigate("/", {
+        navigate("/dashboard/analysis", {
           replace: true,
         });
       }
@@ -44,7 +47,11 @@ const Login: React.FC = () => {
             <Form
               name="normal_login"
               className={styles.loginForm}
-              initialValues={{ remember: true }}
+              initialValues={{
+                username: "admin",
+                password: "123456",
+                remember: true,
+              }}
               onFinish={onFinish}
             >
               <Form.Item

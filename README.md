@@ -1044,3 +1044,91 @@ const Login: React.FC = () => {
 
 export default Login;
 ```
+
+## 十八、使用 Windi CSS
+1. 安装
+```shell
+yarn add windicss-webpack-plugin -D
+```
+
+2. 配置 craco.config.js 文件
+```js
+const path = require("path");
+const CracoAntDesignPlugin = require("craco-antd");
+const WindiCSSWebpackPlugin = require("windicss-webpack-plugin");
+
+// 项目的配置文件，配置webpack
+module.exports = {
+  plugins: [
+    {
+      plugin: CracoAntDesignPlugin,
+      options: {
+        customizeTheme: {
+          // 全局主色
+          "@primary-color": "#1DA57A",
+        },
+      },
+    },
+  ],
+  webpack: {
+    plugins: {
+      add: [
+        new WindiCSSWebpackPlugin({
+          virtualModulePath: "src",
+        }),
+      ],
+    },
+    // 配置路径别名
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  devServer: {
+    port: 8080,
+    // 配置代理，解决跨域
+    // proxy: {
+    //   "/auth": {
+    //     target: "http://xxx.com",
+    //     changeOrigin: true,
+    //     // pathRewrite: {
+    //     //   "^/api": "",
+    //     // },
+    //   },
+    // },
+  },
+};
+```
+
+3. 在项目根目录新建 windi.config.ts 文件
+```ts
+import { defineConfig } from "windicss/helpers";
+
+export default defineConfig({
+  extract: {
+    include: ["**/*.{jsx,tsx,js,ts,css,html}"],
+    exclude: ["node_modules", ".git", ".next"],
+  },
+});
+```
+
+4. 在 src/index.tsx 文件中引入样式文件即可
+```tsx
+import "./virtual:windi.css";
+```
+
+## 十九、使用 ahooks
+ahooks，发音 [eɪ hʊks]，是一套高质量可靠的 React Hooks 库。
+
+1. 安装
+```shell
+$ npm install --save ahooks
+# or
+$ yarn add ahooks
+# or
+$ pnpm add ahooks
+```
+
+2. 使用
+```shell
+import { useRequest } from 'ahooks';
+```

@@ -1,5 +1,6 @@
 const path = require("path");
 const CracoAntDesignPlugin = require("craco-antd");
+const WindiCSSWebpackPlugin = require("windicss-webpack-plugin");
 
 // 项目的配置文件，配置webpack
 module.exports = {
@@ -15,6 +16,13 @@ module.exports = {
     },
   ],
   webpack: {
+    plugins: {
+      add: [
+        new WindiCSSWebpackPlugin({
+          virtualModulePath: "src",
+        }),
+      ],
+    },
     // 配置路径别名
     alias: {
       "@": path.resolve(__dirname, "./src"),

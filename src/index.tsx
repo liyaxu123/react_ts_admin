@@ -7,6 +7,7 @@ import store from "./store";
 // 在ts中，@别名会报错，修改tsconfig.json
 import App from "@/App";
 import "./App.css";
+import "./virtual:windi.css";
 
 // 使用mockjs
 import "./mock";

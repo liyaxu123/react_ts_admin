@@ -16,6 +16,7 @@ request.interceptors.request.use(
       config.headers[process.env.REACT_APP_AJAX_HEADER_AUTH_NAME!] =
         localStorage.getItem(process.env.REACT_APP_TOKEN_NAME!);
     }
+
     return config;
   },
   function (error) {
