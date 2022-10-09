@@ -10,7 +10,7 @@ import "./App.css";
 import "./virtual:windi.css";
 
 // 使用mockjs
-import "./mock";
+// import "./mock";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement

@@ -52,6 +52,65 @@ export const getMenuTree = (options: any) => {
           ],
         },
         {
+          id: "3f9b3205-7f63-4143-badf-a84193ea309a",
+          path: "/upload",
+          title: "文件上传",
+          icon: "CloudUploadOutlined",
+          component: "Outlet",
+          children: [
+            {
+              id: "c30bb605-d3b6-4b76-90f0-b52ed1a792b0",
+              path: "/upload/single",
+              title: "单文件上传",
+              component: "Outlet",
+              children: [
+                {
+                  id: "9080ff63-70e9-427e-8f5c-f02215f860ba",
+                  path: "/upload/single/form_data",
+                  title: "form_data格式",
+                  component: "Upload/Single/FormData",
+                },
+                {
+                  id: "6609789b-fdd3-41ec-9dcc-9f7c512f81f5",
+                  path: "/upload/single/BASE64",
+                  title: "BASE64格式",
+                  component: "Upload/Single/BASE64",
+                },
+                {
+                  id: "25bdab5f-b137-47c3-bd21-4caf9847c95b",
+                  path: "/upload/single/thumbnail",
+                  title: "缩略图处理",
+                  component: "Upload/Single/Thumbnail",
+                },
+                {
+                  id: "307916f7-f5f2-40c0-85f8-b179dbd3cd43",
+                  path: "/upload/single/Progress",
+                  title: "进度管控",
+                  component: "Upload/Single/Progress",
+                },
+              ],
+            },
+            {
+              id: "74c1b560-5a79-4fe7-a08a-8827d6530983",
+              path: "/upload/multifile",
+              title: "多文件上传",
+              component: "Upload/Multifile",
+            },
+            {
+              id: "74e5e8e0-8a2e-44d5-929b-5c763a55f215",
+              path: "/upload/dragDrop",
+              title: "拖拽上传",
+              component: "Upload/DragDrop",
+            },
+            {
+              id: "12b6ae8f-ddd2-4850-8d19-b7efb2a2ac81",
+              path: "/upload/largefile",
+              title: "大文件上传",
+              component: "Upload/LargeFile",
+            },
+          ],
+        },
+        {
           id: "4785cb30-c9a2-4c5f-96af-f2d3bc180296",
           path: "/system",
           title: "系统管理",

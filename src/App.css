@@ -1,1 +1,4 @@
 /* 全局样式 */
+.border_dashed {
+  border: 1px dashed #eee;
+}

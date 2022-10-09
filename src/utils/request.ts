@@ -1,5 +1,6 @@
 import axios from "axios";
 import { message } from "antd";
+import qs from "qs";
 
 const request = axios.create({
   baseURL: process.env.REACT_APP_URL,
@@ -41,5 +42,23 @@ request.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// ====================== 专门处理文件上传的axios实例 ================================
+export const request2 = axios.create({
+  baseURL: "http://127.0.0.1:8888",
+  timeout: 1000 * 60 * 5,
+  headers: {
+    "Content-Type": "multipart/form-data",
+  },
+  transformRequest: (data, headers: any) => {
+    const contentType = headers["Content-Type"];
+    if (contentType === "application/x-www-form-urlencoded")
+      return qs.stringify(data);
+    return data;
+  },
+});
+request2.interceptors.response.use((response) => {
+  return response.data;
+});
 
 export default request;

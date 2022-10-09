@@ -6,6 +6,8 @@ import styles from "./index.module.less";
 import { useSelector } from "react-redux";
 import { selectorAuth, IauthInitState, ImenuItem } from "@/store/modules/auth";
 import { useNavigate, useLocation } from "react-router-dom";
+import Scrollbar from "@/components/Scrollbar";
+
 const { Sider } = Layout;
 
 interface IasideProps {
@@ -63,14 +65,16 @@ const Aside: React.FC<IasideProps> = (props: IasideProps) => {
           </span>
         </div>
       </a>
-      <Menu
-        theme="dark"
-        mode="inline"
-        defaultSelectedKeys={curRoutePath}
-        defaultOpenKeys={[`/${location.pathname.split("/")[1]}`]}
-        items={menuItemsArr}
-        onClick={handleMenuItemClick}
-      />
+      <Scrollbar height="calc(100vh - 56px)">
+        <Menu
+          theme="dark"
+          mode="inline"
+          defaultSelectedKeys={curRoutePath}
+          defaultOpenKeys={[`/${location.pathname.split("/")[1]}`]}
+          items={menuItemsArr}
+          onClick={handleMenuItemClick}
+        />
+      </Scrollbar>
     </Sider>
   );
 };
